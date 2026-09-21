@@ -4,104 +4,143 @@ import datetime
 
 # --- CẤU HÌNH TRANG STREAMLIT ---
 st.set_page_config(
-    page_title="ÔN TẬP TỪ VỰNG HSK4 - Cô Bảo Ngọc",
+    page_title="ÔN TẬP TỪ VỰNG HSK4",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- TÙY CHỈNH STYLES (CSS) ---
+# --- TÙY CHỈNH STYLES (CSS Siêu đáng yêu & Đủ màu sắc) ---
 st.markdown("""
 <style>
-    /* Che logo, toolbar và menu góc phải trên của Streamlit */
-    header[data-testid="stHeader"] {
-        display: none !important;
+    /* Che logo, toolbar, header và menu góc phải trên của Streamlit */
+    header[data-testid="stHeader"] { display: none !important; }
+    div[data-testid="stToolbar"] { display: none !important; }
+    #MainMenu { visibility: hidden !important; }
+    footer { visibility: hidden !important; }
+    .stAppDeployButton { display: none !important; }
+
+    /* Font & Nền tổng thể đáng yêu */
+    .stApp {
+        background: linear-gradient(180deg, #FFF5F7 0%, #F0F9FF 50%, #F5F3FF 100%);
+        font-family: 'Comic Sans MS', 'Chalkboard SE', 'Segoe UI', sans-serif;
     }
-    div[data-testid="stToolbar"] {
-        display: none !important;
-    }
-    #MainMenu {
-        visibility: hidden !important;
-    }
-    footer {
-        visibility: hidden !important;
-    }
-    .stAppDeployButton {
-        display: none !important;
-    }
-    .teacher-footer {
-        text-align: center;
-        color: #4B5563;
-        font-size: 1.25rem;
-        font-weight: 700;
-        margin-top: 3rem;
-        margin-bottom: 2rem;
-        padding-top: 1rem;
-        border-top: 2px dashed #E5E7EB;
-    }
+
+    /* Tiêu đề chính nhiều màu sắc & Gradient pastel */
     .main-title {
         text-align: center;
-        color: #1E3A8A;
-        font-size: 2.2rem;
-        font-weight: 800;
-        margin-bottom: 0.2rem;
+        background: linear-gradient(120deg, #FF6B6B, #FF8E53, #FFD93D, #6BCB77, #4D96FF, #9B51E0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 2.5rem;
+        font-weight: 900;
+        margin-bottom: 0.3rem;
+        text-shadow: 2px 2px 4px rgba(255, 182, 193, 0.4);
     }
+
     .sub-title {
         text-align: center;
-        color: #059669;
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-    }
-    .question-card {
-        background-color: #FFFFFF;
-        padding: 1rem 1.2rem;
-        border-radius: 10px;
-        border: 1px solid #E5E7EB;
-        margin-bottom: 1rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .q-number {
+        color: #EC4899;
+        font-size: 1.25rem;
         font-weight: 700;
-        color: #2563EB;
-        margin-bottom: 0.3rem;
+        background-color: #FFF0F5;
+        padding: 0.6rem 1.2rem;
+        border-radius: 25px;
+        border: 2px dashed #F472B6;
+        display: inline-block;
+        margin: 0 auto 1.5rem auto;
+        box-shadow: 0 4px 10px rgba(244, 114, 182, 0.15);
     }
+
+    /* Khung học viên Sidebar đáng yêu */
+    div[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #FFF1F2 0%, #FEF3C7 100%);
+        border-right: 3px solid #FBCFE8;
+    }
+
+    /* Tabs phong cách Cute Pills nhiều màu */
+    button[data-baseweb="tab"] {
+        background-color: #FFFFFF !important;
+        border-radius: 15px !important;
+        padding: 8px 16px !important;
+        margin: 3px !important;
+        border: 2px solid #F3E8FF !important;
+        color: #6B21A8 !important;
+        font-weight: 700 !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;
+        transition: all 0.2s ease-in-out !important;
+    }
+
+    button[data-baseweb="tab"]:hover {
+        transform: translateY(-2px);
+        border-color: #C084FC !important;
+        background-color: #FAF5FF !important;
+    }
+
+    button[aria-selected="true"] {
+        background: linear-gradient(135deg, #EC4899 0%, #8B5CF6 100%) !important;
+        color: #FFFFFF !important;
+        border: none !important;
+        box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3) !important;
+    }
+
+    /* Thẻ câu hỏi nhiều màu đáng yêu */
+    .question-card {
+        background: #FFFFFF;
+        padding: 1.2rem;
+        border-radius: 20px;
+        border: 2px solid #FDE68A;
+        margin-bottom: 1.2rem;
+        box-shadow: 0 6px 15px rgba(251, 191, 36, 0.1);
+    }
+
+    /* Banners kết quả học viên */
     .result-banner-8 {
-        background-color: #D1FAE5;
-        border-left: 6px solid #10B981;
+        background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+        border: 3px solid #34D399;
         color: #065F46;
-        padding: 1.2rem;
-        border-radius: 8px;
-        margin-top: 1rem;
-        margin-bottom: 1rem;
+        padding: 1.3rem;
+        border-radius: 20px;
+        margin: 1rem 0;
+        font-size: 1.15rem;
+        box-shadow: 0 6px 15px rgba(52, 211, 153, 0.2);
     }
+
     .result-banner-5 {
-        background-color: #FEF3C7;
-        border-left: 6px solid #F59E0B;
+        background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+        border: 3px solid #FBBF24;
         color: #92400E;
-        padding: 1.2rem;
-        border-radius: 8px;
-        margin-top: 1rem;
-        margin-bottom: 1rem;
+        padding: 1.3rem;
+        border-radius: 20px;
+        margin: 1rem 0;
+        font-size: 1.15rem;
+        box-shadow: 0 6px 15px rgba(251, 191, 36, 0.2);
     }
+
     .result-banner-0 {
-        background-color: #FEE2E2;
-        border-left: 6px solid #EF4444;
+        background: linear-gradient(135deg, #FEE2E2 0%, #FECDD3 100%);
+        border: 3px solid #F87171;
         color: #991B1B;
+        padding: 1.3rem;
+        border-radius: 20px;
+        margin: 1rem 0;
+        font-size: 1.15rem;
+        box-shadow: 0 6px 15px rgba(248, 113, 113, 0.2);
+    }
+
+    /* Footer cô Bảo Ngọc đáng yêu */
+    .teacher-footer {
+        text-align: center;
+        color: #DB2777;
+        font-size: 1.35rem;
+        font-weight: 800;
+        margin-top: 3.5rem;
+        margin-bottom: 2rem;
         padding: 1.2rem;
-        border-radius: 8px;
-        margin-top: 1rem;
-        margin-bottom: 1rem;
-    }
-    .feedback-wrong {
-        color: #DC2626;
-        font-size: 0.95rem;
-        margin-top: 0.3rem;
-    }
-    .feedback-correct {
-        color: #16A34A;
-        font-size: 0.95rem;
-        margin-top: 0.3rem;
+        background: linear-gradient(90deg, #FFE4E6, #FEF3C7, #E0E7FF, #F3E8FF);
+        border-radius: 30px;
+        border: 2px dashed #F472B6;
+        box-shadow: 0 4px 12px rgba(244, 114, 182, 0.15);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -124,22 +163,22 @@ def post_to_gsheet(student_name, test_name, score_str):
         return False
 
 # --- HEADER ---
-st.markdown('<div class="main-title">ÔN TẬP TỪ VỰNG HSK4</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">Chúc cả lớp ôn tập tốt nha, cảm ơn vì đã chăm chỉ!</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-title">✨ 🌸 ÔN TẬP TỪ VỰNG HSK4 🌸 ✨</div>', unsafe_allow_html=True)
+st.markdown('<div style="text-align: center;"><div class="sub-title">🎀 Chúc cả lớp ôn tập tốt nha, cảm ơn vì đã chăm chỉ! 💖 🦄</div></div>', unsafe_allow_html=True)
 
 # --- SIDEBAR INPUT ---
 with st.sidebar:
-    st.header("👤 Thông tin học viên")
+    st.header("🎀 👤 THÔNG TIN HỌC VIÊN 💖")
     student_name = st.text_input("Họ và tên học viên:", key="global_student_name", placeholder="Ví dụ: Nguyễn Văn A").strip()
     if student_name:
-        st.success(f"Chào mừng **{student_name}**! Chúc bạn làm bài tốt.")
+        st.success(f"🎉 Chào mừng **{student_name}** siêu đáng yêu! Chúc bạn làm bài thật tốt nha ⭐️✨")
     else:
         st.warning("⚠️ Vui lòng nhập Họ tên trước khi làm và nộp bài.")
 
 # --- DỮ LIỆU CÁC BỘ ĐỀ ---
 TEST_DATA = [
     {
-        "id": "01-CƠ BẢN - Ví dụ 1",
+        "id": "01-cơ bản",
         "source": "ĐỌC 1 (CƠ BẢN)",
         "name": "Ví dụ 1",
         "questions": [
@@ -156,7 +195,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "02-CƠ BẢN - Bộ đề 1",
+        "id": "02-cơ bản",
         "source": "ĐỌC 1 (CƠ BẢN)",
         "name": "Bộ đề 1",
         "questions": [
@@ -173,7 +212,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "03-CƠ BẢN - Bộ đề 2",
+        "id": "03-cơ bản",
         "source": "ĐỌC 1 (CƠ BẢN)",
         "name": "Bộ đề 2",
         "questions": [
@@ -190,7 +229,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "04-CƠ BẢN - Bộ đề 3",
+        "id": "04-cơ bản",
         "source": "ĐỌC 1 (CƠ BẢN)",
         "name": "Bộ đề 3",
         "questions": [
@@ -207,7 +246,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "05-CƠ BẢN - Bộ đề 4",
+        "id": "05-cơ bản",
         "source": "ĐỌC 1 (CƠ BẢN)",
         "name": "Bộ đề 4",
         "questions": [
@@ -224,7 +263,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "06-CƠ BẢN - Bộ đề 5",
+        "id": "06-cơ bản",
         "source": "ĐỌC 1 (CƠ BẢN)",
         "name": "Bộ đề 5",
         "questions": [
@@ -241,7 +280,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "07-CƠ BẢN - Bộ đề 6",
+        "id": "07-cơ bản",
         "source": "ĐỌC 1 (CƠ BẢN)",
         "name": "Bộ đề 6",
         "questions": [
@@ -258,7 +297,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "08-CƠ BẢN - Bộ đề 7",
+        "id": "08-cơ bản",
         "source": "ĐỌC 1 (CƠ BẢN)",
         "name": "Bộ đề 7",
         "questions": [
@@ -275,7 +314,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "09-CƠ BẢN - Bộ đề 10",
+        "id": "09-cơ bản",
         "source": "ĐỌC 1 (CƠ BẢN)",
         "name": "Bộ đề 10",
         "questions": [
@@ -292,7 +331,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "10-CƠ BẢN - Bộ đề 11",
+        "id": "10-cơ bản",
         "source": "ĐỌC 1 (CƠ BẢN)",
         "name": "Bộ đề 11",
         "questions": [
@@ -309,7 +348,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "11-CƠ BẢN - Bộ đề 12",
+        "id": "11-cơ bản",
         "source": "ĐỌC 1 (CƠ BẢN)",
         "name": "Bộ đề 12",
         "questions": [
@@ -326,7 +365,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "12-CƠ BẢN - Bộ đề 13",
+        "id": "12-cơ bản",
         "source": "ĐỌC 1 (CƠ BẢN)",
         "name": "Bộ đề 13",
         "questions": [
@@ -343,7 +382,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "13-CƯỜNG HÓA - Bộ đề 14",
+        "id": "13-cường hóa",
         "source": "Cường hóa",
         "name": "Bộ đề 14",
         "questions": [
@@ -360,7 +399,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "14-CƯỜNG HÓA - Bộ đề 15",
+        "id": "14-cường hóa",
         "source": "Cường hóa",
         "name": "Bộ đề 15",
         "questions": [
@@ -377,7 +416,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "15-CƯỜNG HÓA - Bộ đề 16",
+        "id": "15-cường hóa",
         "source": "Cường hóa",
         "name": "Bộ đề 16",
         "questions": [
@@ -394,7 +433,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "16-CƯỜNG HÓA - Bộ đề 17",
+        "id": "16-cường hóa",
         "source": "Cường hóa",
         "name": "Bộ đề 17",
         "questions": [
@@ -411,7 +450,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "17-CƯỜNG HÓA - Bộ đề 18",
+        "id": "17-cường hóa",
         "source": "Cường hóa",
         "name": "Bộ đề 18",
         "questions": [
@@ -428,7 +467,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "18-CƯỜNG HÓA - Bộ đề 19",
+        "id": "18-cường hóa",
         "source": "Cường hóa",
         "name": "Bộ đề 19",
         "questions": [
@@ -445,7 +484,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "19-CƯỜNG HÓA - Bộ đề 20",
+        "id": "19-cường hóa",
         "source": "Cường hóa",
         "name": "Bộ đề 20",
         "questions": [
@@ -462,7 +501,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "20-CƯỜNG HÓA - Bộ đề 21",
+        "id": "20-cường hóa",
         "source": "Cường hóa",
         "name": "Bộ đề 21",
         "questions": [
@@ -479,7 +518,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "21-XANH LÁ - Bộ đề 22 (Mẫu 5)",
+        "id": "21-xanh lá",
         "source": "Xanh lá",
         "name": "Bộ đề 22",
         "questions": [
@@ -496,7 +535,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "22-XANH LÁ - Bộ đề 23 (Mẫu 6)",
+        "id": "22-xanh lá",
         "source": "Xanh lá",
         "name": "Bộ đề 23",
         "questions": [
@@ -513,7 +552,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "23-XANH LÁ - Bộ đề 24 (Mẫu 7)",
+        "id": "23-xanh lá",
         "source": "Xanh lá",
         "name": "Bộ đề 24",
         "questions": [
@@ -530,7 +569,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "24-XANH LÁ - Bộ đề 25 (Mẫu 8)",
+        "id": "24-xanh lá",
         "source": "Xanh lá",
         "name": "Bộ đề 25",
         "questions": [
@@ -547,7 +586,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "25-XANH LÁ - Bộ đề 26 (Mẫu 9)",
+        "id": "25-xanh lá",
         "source": "Xanh lá",
         "name": "Bộ đề 26",
         "questions": [
@@ -564,7 +603,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "26-XANH LÁ - Bộ đề 27 (Mẫu 10)",
+        "id": "26-xanh lá",
         "source": "Xanh lá",
         "name": "Bộ đề 27",
         "questions": [
@@ -589,7 +628,7 @@ tabs = st.tabs(tab_names)
 for index, tab in enumerate(tabs):
     test_info = TEST_DATA[index]
     with tab:
-        st.subheader(f"📌 {test_info['id']} ({test_info['source']})")
+        st.subheader(f"📌 {test_info['id']} 🌸✨")
         st.markdown("Chọn đáp án đúng nhất cho từng câu hỏi dưới đây:")
         
         # Form for answering questions
@@ -635,11 +674,11 @@ for index, tab in enumerate(tabs):
                 st.markdown(f"### 🎉 Chúc mừng "**{student_name}**" hoàn thành **{test_info['id']}**. Điểm số của bạn là **{score}/{total}**")
                 
                 if score >= 8:
-                    st.markdown('<div class="result-banner-8">🌟 <b>Ai mà giỏi quá ta, tiếp tục phát huy nha.</b></div>', unsafe_allow_html=True)
+                    st.markdown('<div class="result-banner-8">🎉 🌸 <b>Ai mà giỏi quá ta, tiếp tục phát huy nha! ✨ 🏆 💖</b></div>', unsafe_allow_html=True)
                 elif score >= 5:
-                    st.markdown('<div class="result-banner-5">👍 <b>Ok cũng được đó, tiếp tục cố gắng nha!</b></div>', unsafe_allow_html=True)
+                    st.markdown('<div class="result-banner-5">🌈 🍓 <b>Ok cũng được đó, tiếp tục cố gắng nha! 💪 ✨ 🍀</b></div>', unsafe_allow_html=True)
                 else:
-                    st.markdown('<div class="result-banner-0">💪 <b>Hơi tiếc một chút, bạn nhớ kỹ lại từ vựng nhé!</b></div>', unsafe_allow_html=True)
+                    st.markdown('<div class="result-banner-0">🥺 🐥 <b>Hơi tiếc một chút, bạn nhớ kỹ lại từ vựng nhé! 💖 📘 🌟</b></div>', unsafe_allow_html=True)
                 
                 # Send result to Google Sheet
                 sent = post_to_gsheet(student_name, test_info["id"], score_str)
@@ -657,7 +696,3 @@ for index, tab in enumerate(tabs):
                         st.markdown(f"**Câu {item['num']}:** ❌ Sai.")
                         st.markdown(f"- Bạn chọn: `{item['user_ans'] if item['user_ans'] else 'Chưa chọn'}`")
                         st.markdown(f"- Đáp án đúng: **{item['correct_ans']}**")
-
-
-# --- FOOTER ---
-st.markdown('<div class="teacher-footer">黄宝玉老师</div>', unsafe_allow_html=True)
