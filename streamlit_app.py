@@ -1,4 +1,5 @@
 import streamlit as st
+import random
 import requests
 import datetime
 
@@ -7,145 +8,156 @@ st.set_page_config(
     page_title="ÔN TẬP TỪ VỰNG HSK4",
     page_icon="🎓",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-# --- TÙY CHỈNH STYLES (CSS Siêu đáng yêu & Đủ màu sắc) ---
+# --- ẨN HEADER / MENU / LOGO KHÔNG CẦN THIẾT ---
 st.markdown("""
 <style>
-    /* Che logo, toolbar, header và menu góc phải trên của Streamlit */
     header[data-testid="stHeader"] { display: none !important; }
     div[data-testid="stToolbar"] { display: none !important; }
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
     .stAppDeployButton { display: none !important; }
-
-    /* Font & Nền tổng thể đáng yêu */
-    .stApp {
-        background: linear-gradient(180deg, #FFF5F7 0%, #F0F9FF 50%, #F5F3FF 100%);
-        font-family: 'Comic Sans MS', 'Chalkboard SE', 'Segoe UI', sans-serif;
+    
+    /* Responsive Layout */
+    .block-container {
+        padding-top: 1.5rem !important;
+        padding-bottom: 2rem !important;
+        max-width: 1100px !important;
     }
-
-    /* Tiêu đề chính nhiều màu sắc & Gradient pastel */
-    .main-title {
+    
+    /* Clean, Simple Header */
+    .clean-title {
         text-align: center;
-        background: linear-gradient(120deg, #FF6B6B, #FF8E53, #FFD93D, #6BCB77, #4D96FF, #9B51E0);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-size: 2.5rem;
-        font-weight: 900;
-        margin-bottom: 0.3rem;
-        text-shadow: 2px 2px 4px rgba(255, 182, 193, 0.4);
-    }
-
-    .sub-title {
-        text-align: center;
-        color: #EC4899;
-        font-size: 1.25rem;
+        color: #1E293B;
+        font-size: 1.8rem;
         font-weight: 700;
-        background-color: #FFF0F5;
-        padding: 0.6rem 1.2rem;
-        border-radius: 25px;
-        border: 2px dashed #F472B6;
-        display: inline-block;
-        margin: 0 auto 1.5rem auto;
-        box-shadow: 0 4px 10px rgba(244, 114, 182, 0.15);
+        margin-bottom: 0.2rem;
     }
-
-    /* Khung học viên Sidebar đáng yêu */
-    div[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #FFF1F2 0%, #FEF3C7 100%);
-        border-right: 3px solid #FBCFE8;
+    .clean-subtitle {
+        text-align: center;
+        color: #475569;
+        font-size: 1rem;
+        font-weight: 500;
+        margin-bottom: 1.5rem;
     }
-
-    /* Tabs phong cách Cute Pills nhiều màu */
-    button[data-baseweb="tab"] {
-        background-color: #FFFFFF !important;
-        border-radius: 15px !important;
-        padding: 8px 16px !important;
-        margin: 3px !important;
-        border: 2px solid #F3E8FF !important;
-        color: #6B21A8 !important;
-        font-weight: 700 !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;
-        transition: all 0.2s ease-in-out !important;
+    
+    /* Question Text Style - Dark Pastel Bold */
+    .q-text {
+        color: #2C3E50;
+        font-weight: 700;
+        font-size: 1.05rem;
+        margin-bottom: 0.4rem;
+        line-height: 1.5;
     }
-
-    button[data-baseweb="tab"]:hover {
-        transform: translateY(-2px);
-        border-color: #C084FC !important;
-        background-color: #FAF5FF !important;
+    
+    /* Flashcard CSS with Hover Flip Effect */
+    .flashcard-box {
+        perspective: 1000px;
+        height: 150px;
+        margin-bottom: 15px;
     }
-
-    button[aria-selected="true"] {
-        background: linear-gradient(135deg, #EC4899 0%, #8B5CF6 100%) !important;
-        color: #FFFFFF !important;
-        border: none !important;
-        box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3) !important;
+    .flashcard-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+        border-radius: 12px;
+        cursor: pointer;
     }
-
-    /* Thẻ câu hỏi nhiều màu đáng yêu */
-    .question-card {
-        background: #FFFFFF;
-        padding: 1.2rem;
-        border-radius: 20px;
-        border: 2px solid #FDE68A;
-        margin-bottom: 1.2rem;
-        box-shadow: 0 6px 15px rgba(251, 191, 36, 0.1);
+    .flashcard-box:hover .flashcard-inner {
+        transform: rotateY(180deg);
     }
-
-    /* Banners kết quả học viên */
-    .result-banner-8 {
-        background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
-        border: 3px solid #34D399;
-        color: #065F46;
-        padding: 1.3rem;
-        border-radius: 20px;
-        margin: 1rem 0;
-        font-size: 1.15rem;
-        box-shadow: 0 6px 15px rgba(52, 211, 153, 0.2);
+    .flashcard-front, .flashcard-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 12px;
+        box-sizing: border-box;
     }
-
-    .result-banner-5 {
+    .flashcard-front {
+        background: linear-gradient(135deg, #F8FAFC 0%, #EDF2F7 100%);
+        color: #1E293B;
+        border: 2px solid #CBD5E1;
+    }
+    .flashcard-back {
         background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
-        border: 3px solid #FBBF24;
+        color: #78350F;
+        border: 2px solid #FCD34D;
+        transform: rotateY(180deg);
+    }
+    .fc-hanzi {
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: #1E3A8A;
+    }
+    .fc-pinyin {
+        font-size: 0.95rem;
+        color: #475569;
+        margin-top: 2px;
+    }
+    .fc-meaning {
+        font-size: 1.1rem;
+        font-weight: 700;
         color: #92400E;
-        padding: 1.3rem;
-        border-radius: 20px;
-        margin: 1rem 0;
-        font-size: 1.15rem;
-        box-shadow: 0 6px 15px rgba(251, 191, 36, 0.2);
+    }
+    .fc-hint {
+        font-size: 0.75rem;
+        color: #94A3B8;
+        margin-top: 6px;
     }
 
+    /* Result Banners */
+    .result-banner-8 {
+        background-color: #D1FAE5;
+        border-left: 5px solid #10B981;
+        color: #065F46;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
+    .result-banner-5 {
+        background-color: #FEF3C7;
+        border-left: 5px solid #F59E0B;
+        color: #92400E;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+    }
     .result-banner-0 {
-        background: linear-gradient(135deg, #FEE2E2 0%, #FECDD3 100%);
-        border: 3px solid #F87171;
+        background-color: #FEE2E2;
+        border-left: 5px solid #EF4444;
         color: #991B1B;
-        padding: 1.3rem;
-        border-radius: 20px;
+        padding: 1rem;
+        border-radius: 8px;
         margin: 1rem 0;
-        font-size: 1.15rem;
-        box-shadow: 0 6px 15px rgba(248, 113, 113, 0.2);
     }
-
-    /* Footer cô Bảo Ngọc đáng yêu */
+    
     .teacher-footer {
         text-align: center;
-        color: #DB2777;
-        font-size: 1.35rem;
-        font-weight: 800;
-        margin-top: 3.5rem;
+        color: #64748B;
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-top: 3rem;
         margin-bottom: 2rem;
-        padding: 1.2rem;
-        background: linear-gradient(90deg, #FFE4E6, #FEF3C7, #E0E7FF, #F3E8FF);
-        border-radius: 30px;
-        border: 2px dashed #F472B6;
-        box-shadow: 0 4px 12px rgba(244, 114, 182, 0.15);
+        padding-top: 1rem;
+        border-top: 1px dashed #CBD5E1;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# --- GOOGLE SHEETS WEB APP URL ---
+# --- GOOGLE SHEETS API URL ---
 GSHEET_URL = "https://script.google.com/macros/s/AKfycbzsGpC84ZYruRCamTzv3pnY3eHcibMa9sVLT73S5zpX_OfAKRYwmMDgZElfUeWbA7Km/exec"
 
 def post_to_gsheet(student_name, test_name, score_str):
@@ -159,23 +171,371 @@ def post_to_gsheet(student_name, test_name, score_str):
         }
         resp = requests.post(GSHEET_URL, json=payload, timeout=5)
         return True
-    except Exception as e:
+    except Exception:
         return False
 
-# --- HEADER ---
-st.markdown('<div class="main-title">✨ 🌸 ÔN TẬP TỪ VỰNG HSK4 🌸 ✨</div>', unsafe_allow_html=True)
-st.markdown('<div style="text-align: center;"><div class="sub-title">🎀 Chúc cả lớp ôn tập tốt nha, cảm ơn vì đã chăm chỉ! 💖 🦄</div></div>', unsafe_allow_html=True)
+# --- HEADER (ĐƠN GIẢN, KHÔNG MÀU MÈ CẦU KỲ) ---
+st.markdown('<div class="clean-title">ÔN TẬP TỪ VỰNG HSK4</div>', unsafe_allow_html=True)
+st.markdown('<div class="clean-subtitle">Chúc cả lớp ôn tập tốt nha, cảm ơn vì đã chăm chỉ!</div>', unsafe_allow_html=True)
 
-# --- SIDEBAR INPUT ---
-with st.sidebar:
-    st.header("🎀 👤 THÔNG TIN HỌC VIÊN 💖")
-    student_name = st.text_input("Họ và tên học viên:", key="global_student_name", placeholder="Ví dụ: Nguyễn Văn A").strip()
-    if student_name:
-        st.success(f"🎉 Chào mừng **{student_name}** siêu đáng yêu! Chúc bạn làm bài thật tốt nha ⭐️✨")
-    else:
-        st.warning("⚠️ Vui lòng nhập Họ tên trước khi làm và nộp bài.")
+# --- FLASHCARD 600 TỪ VỰNG HSK4 (NGẪU NHIÊN KHI MỞ / TẢI LẠI TRANG) ---
+VOCAB_600 = [
+    {"hanzi": "爱情", "pinyin": "àiqíng", "meaning": "tình yêu"},
+    {"hanzi": "按照", "pinyin": "ànzhào", "meaning": "dựa vào, theo"},
+    {"hanzi": "按时", "pinyin": "ànshí", "meaning": "đúng hạn"},
+    {"hanzi": "安排", "pinyin": "ānpái", "meaning": "sắp xếp"},
+    {"hanzi": "安全", "pinyin": "ānquán", "meaning": "an toàn"},
+    {"hanzi": "百分之", "pinyin": "bǎi fēn zhī", "meaning": "phần trăm (%)"},
+    {"hanzi": "饼干", "pinyin": "bǐnggān", "meaning": "bánh"},
+    {"hanzi": "部分", "pinyin": "bùfèn", "meaning": "bộ phận, phần"},
+    {"hanzi": "遍", "pinyin": "biàn", "meaning": "lần, lượt"},
+    {"hanzi": "表示", "pinyin": "biǎoshì", "meaning": "biểu thị, cho thấy"},
+    {"hanzi": "表演", "pinyin": "biǎoyǎn", "meaning": "biểu diễn"},
+    {"hanzi": "表格", "pinyin": "biǎogé", "meaning": "bảng biểu"},
+    {"hanzi": "表扬", "pinyin": "biǎoyáng", "meaning": "tuyên dương"},
+    {"hanzi": "笨", "pinyin": "bèn", "meaning": "ngốc nghếch"},
+    {"hanzi": "毕业", "pinyin": "bìyè", "meaning": "tốt nghiệp"},
+    {"hanzi": "比如", "pinyin": "bǐrú", "meaning": "ví dụ như"},
+    {"hanzi": "棒", "pinyin": "bàng", "meaning": "cây gậy"},
+    {"hanzi": "标准", "pinyin": "biāozhǔn", "meaning": "tiêu chuẩn"},
+    {"hanzi": "本来", "pinyin": "běnlái", "meaning": "vốn có"},
+    {"hanzi": "抱歉", "pinyin": "bàoqiàn", "meaning": "xin lỗi"},
+    {"hanzi": "抱", "pinyin": "bào", "meaning": "ôm"},
+    {"hanzi": "报名", "pinyin": "bàomíng", "meaning": "đăng kí"},
+    {"hanzi": "并且", "pinyin": "bìngqiě", "meaning": "đồng thời"},
+    {"hanzi": "博士", "pinyin": "bóshì", "meaning": "tiến sĩ"},
+    {"hanzi": "包子", "pinyin": "bāozi", "meaning": "bánh bao"},
+    {"hanzi": "倍", "pinyin": "bèi", "meaning": "lần"},
+    {"hanzi": "保证", "pinyin": "bǎozhèng", "meaning": "đảm bảo, cam đoan"},
+    {"hanzi": "保护", "pinyin": "bǎohù", "meaning": "che chở, bảo vệ"},
+    {"hanzi": "不过", "pinyin": "bùguò", "meaning": "nhưng"},
+    {"hanzi": "不管", "pinyin": "bùguǎn", "meaning": "bất kể"},
+    {"hanzi": "不得不", "pinyin": "bù dé bù", "meaning": "đành"},
+    {"hanzi": "不仅", "pinyin": "bùjǐn", "meaning": "không những"},
+    {"hanzi": "擦", "pinyin": "cā", "meaning": "lau"},
+    {"hanzi": "餐厅", "pinyin": "cāntīng", "meaning": "căng tin, nhà ăn"},
+    {"hanzi": "长江", "pinyin": "chángjiāng", "meaning": "Trường Giang"},
+    {"hanzi": "长城", "pinyin": "chángchéng", "meaning": "Trường Thành"},
+    {"hanzi": "错误", "pinyin": "cuòwù", "meaning": "sai lầm"},
+    {"hanzi": "重新", "pinyin": "chóngxīn", "meaning": "làm lại"},
+    {"hanzi": "超过", "pinyin": "chāoguò", "meaning": "vượt trên"},
+    {"hanzi": "诚实", "pinyin": "chéngshí", "meaning": "trung thực"},
+    {"hanzi": "词语", "pinyin": "cíyǔ", "meaning": "từ ngữ"},
+    {"hanzi": "粗心", "pinyin": "cūxīn", "meaning": "thô lỗ, cẩu thả"},
+    {"hanzi": "窗户", "pinyin": "chuānghù", "meaning": "cửa sổ"},
+    {"hanzi": "猜", "pinyin": "cāi", "meaning": "đoán"},
+    {"hanzi": "材料", "pinyin": "cáiliào", "meaning": "tài liệu"},
+    {"hanzi": "抽烟", "pinyin": "chōuyān", "meaning": "hút thuốc"},
+    {"hanzi": "成功", "pinyin": "chénggōng", "meaning": "thành công"},
+    {"hanzi": "成为", "pinyin": "chéngwéi", "meaning": "trở thành"},
+    {"hanzi": "差不多", "pinyin": "chàbuduō", "meaning": "gần như"},
+    {"hanzi": "尝", "pinyin": "cháng", "meaning": "nếm thử"},
+    {"hanzi": "存", "pinyin": "cún", "meaning": "giữ, tiết kiệm, tồn"},
+    {"hanzi": "场", "pinyin": "chǎng", "meaning": "trận, suất"},
+    {"hanzi": "吃惊", "pinyin": "chījīng", "meaning": "ngạc nhiên"},
+    {"hanzi": "参观", "pinyin": "cānguān", "meaning": "tham quan"},
+    {"hanzi": "厨房", "pinyin": "chúfáng", "meaning": "phòng bếp"},
+    {"hanzi": "厕所", "pinyin": "cèsuǒ", "meaning": "phòng vệ sinh"},
+    {"hanzi": "出生", "pinyin": "chūshēng", "meaning": "ra đời"},
+    {"hanzi": "出现", "pinyin": "chūxiàn", "meaning": "xuất hiện"},
+    {"hanzi": "出差", "pinyin": "chūchāi", "meaning": "đi công tác"},
+    {"hanzi": "出发", "pinyin": "chūfā", "meaning": "xuất phát"},
+    {"hanzi": "传真", "pinyin": "chuánzhēn", "meaning": "fax, bản fax"},
+    {"hanzi": "从来", "pinyin": "cónglái", "meaning": "từ trước đến nay"},
+    {"hanzi": "乘坐", "pinyin": "chéngzuò", "meaning": "ngồi xe"},
+    {"hanzi": "答案", "pinyin": "dá’àn", "meaning": "đáp án"},
+    {"hanzi": "道歉", "pinyin": "dàoqiàn", "meaning": "xin lỗi"},
+    {"hanzi": "调查", "pinyin": "diàochá", "meaning": "điều tra"},
+    {"hanzi": "肚子", "pinyin": "dùzi", "meaning": "bụng"},
+    {"hanzi": "等", "pinyin": "děng", "meaning": "vân vân"},
+    {"hanzi": "短信", "pinyin": "duǎnxìn", "meaning": "tin nhắn"},
+    {"hanzi": "登机牌", "pinyin": "dēngjīpái", "meaning": "thẻ lên tàu"},
+    {"hanzi": "掉", "pinyin": "diào", "meaning": "rơi"},
+    {"hanzi": "打针", "pinyin": "dǎzhēn", "meaning": "tiêm"},
+    {"hanzi": "打招呼", "pinyin": "dǎ zhāohū", "meaning": "chào hỏi"},
+    {"hanzi": "打折", "pinyin": "dǎzhé", "meaning": "giảm giá"},
+    {"hanzi": "打扰", "pinyin": "dǎrǎo", "meaning": "làm phiền"},
+    {"hanzi": "打扮", "pinyin": "dǎbàn", "meaning": "trau chuốt, trang điểm"},
+    {"hanzi": "打印", "pinyin": "dǎyìn", "meaning": "in ấn"},
+    {"hanzi": "戴", "pinyin": "dài", "meaning": "đeo"},
+    {"hanzi": "得意", "pinyin": "déyì", "meaning": "đắc ý"},
+    {"hanzi": "得", "pinyin": "de", "meaning": "trợ từ"},
+    {"hanzi": "当时", "pinyin": "dāngshí", "meaning": "lúc đó"},
+    {"hanzi": "当", "pinyin": "dāng", "meaning": "làm"},
+    {"hanzi": "底", "pinyin": "dǐ", "meaning": "đáy"},
+    {"hanzi": "导游", "pinyin": "dǎoyóu", "meaning": "hướng dẫn viên du lịch"},
+    {"hanzi": "符合", "pinyin": "fúhé", "meaning": "phù hợp"},
+    {"hanzi": "父亲", "pinyin": "fùqīn", "meaning": "bố"},
+    {"hanzi": "烦恼", "pinyin": "fánnǎo", "meaning": "phiền脑 (phiền não)"},
+    {"hanzi": "法律", "pinyin": "fǎlǜ", "meaning": "pháp luật"},
+    {"hanzi": "方面", "pinyin": "fāngmiàn", "meaning": "phương diện"},
+    {"hanzi": "方法", "pinyin": "fāngfǎ", "meaning": "phương pháp"},
+    {"hanzi": "方向", "pinyin": "fāngxiàng", "meaning": "phương hướng"},
+    {"hanzi": "放松", "pinyin": "fàngsōng", "meaning": "thư giãn"},
+    {"hanzi": "放暑假", "pinyin": "fàngshǔjià", "meaning": "nghỉ hè"},
+    {"hanzi": "放弃", "pinyin": "fàngqì", "meaning": "vứt bỏ, từ bỏ"},
+    {"hanzi": "房东", "pinyin": "fángdōng", "meaning": "chủ nhà"},
+    {"hanzi": "富", "pinyin": "fù", "meaning": "giàu"},
+    {"hanzi": "复杂", "pinyin": "fùzá", "meaning": "phức tạp"},
+    {"hanzi": "复印", "pinyin": "fùyìn", "meaning": "phô tô"},
+    {"hanzi": "否则", "pinyin": "fǒuzé", "meaning": "nếu không thì"},
+    {"hanzi": "发展", "pinyin": "fāzhǎn", "meaning": "phát triển"},
+    {"hanzi": "反对", "pinyin": "fǎnduì", "meaning": "phản đối"},
+    {"hanzi": "份", "pinyin": "fèn", "meaning": "phần"},
+    {"hanzi": "付款", "pinyin": "fùkuǎn", "meaning": "thanh toán"},
+    {"hanzi": "丰富", "pinyin": "fēngfù", "meaning": "phong phú"},
+    {"hanzi": "改变", "pinyin": "gǎibiàn", "meaning": "thay đổi"},
+    {"hanzi": "鼓励", "pinyin": "gǔlì", "meaning": "cổ vũ"},
+    {"hanzi": "高速公路", "pinyin": "gāosù gōng lù", "meaning": "đường cao tốc"},
+    {"hanzi": "顾客", "pinyin": "gùkè", "meaning": "khách hàng"},
+    {"hanzi": "逛", "pinyin": "guàng", "meaning": "đi dạo"},
+    {"hanzi": "过程", "pinyin": "guòchéng", "meaning": "quá trình"},
+    {"hanzi": "赶", "pinyin": "gǎn", "meaning": "đuổi theo"},
+    {"hanzi": "购物", "pinyin": "gòuwù", "meaning": "mua sắm"},
+    {"hanzi": "规定", "pinyin": "guīdìng", "meaning": "qui định"},
+    {"hanzi": "观众", "pinyin": "guānzhòng", "meaning": "khán giả"},
+    {"hanzi": "胳膊", "pinyin": "gēbo", "meaning": "cánh tay"},
+    {"hanzi": "管理", "pinyin": "guǎnlǐ", "meaning": "quản lý"},
+    {"hanzi": "果汁", "pinyin": "guǒzhī", "meaning": "nước hoa quả"},
+    {"hanzi": "敢", "pinyin": "gǎn", "meaning": "dám"},
+    {"hanzi": "故意", "pinyin": "gùyì", "meaning": "cố ý"},
+    {"hanzi": "挂", "pinyin": "guà", "meaning": "treo"},
+    {"hanzi": "感谢", "pinyin": "gǎnxiè", "meaning": "cảm ơn"},
+    {"hanzi": "感觉", "pinyin": "gǎnjué", "meaning": "cảm giác"},
+    {"hanzi": "感情", "pinyin": "gǎnqíng", "meaning": "tình cảm"},
+    {"hanzi": "感动", "pinyin": "gǎndòng", "meaning": "cảm động"},
+    {"hanzi": "广播", "pinyin": "guǎngbō", "meaning": "phát thanh"},
+    {"hanzi": "广告", "pinyin": "guǎnggào", "meaning": "quảng cáo"},
+    {"hanzi": "干杯", "pinyin": "gānbēi", "meaning": "cạn ly"},
+    {"hanzi": "计划", "pinyin": "jìhuà", "meaning": "kế hoạch"},
+    {"hanzi": "警察", "pinyin": "jǐngchá", "meaning": "cảnh sát"},
+    {"hanzi": "解释", "pinyin": "jiěshì", "meaning": "giải thích"},
+    {"hanzi": "节约", "pinyin": "jiéyuē", "meaning": "tiết kiệm"},
+    {"hanzi": "节", "pinyin": "jié", "meaning": "tiết"},
+    {"hanzi": "聚会", "pinyin": "jùhuì", "meaning": "tụ tập"},
+    {"hanzi": "继续", "pinyin": "jìxù", "meaning": "tiếp tục"},
+    {"hanzi": "结果", "pinyin": "jiéguǒ", "meaning": "kết quả"},
+    {"hanzi": "经验", "pinyin": "jīngyàn", "meaning": "kinh nghiệm"},
+    {"hanzi": "经济", "pinyin": "jīngjì", "meaning": "kinh tế"},
+    {"hanzi": "经历", "pinyin": "jīnglì", "meaning": "trải qua, kinh qua"},
+    {"hanzi": "紧张", "pinyin": "jǐnzhāng", "meaning": "căng thẳng"},
+    {"hanzi": "精彩", "pinyin": "jīngcǎi", "meaning": "hấp dẫn"},
+    {"hanzi": "竟然", "pinyin": "jìngrán", "meaning": "mà lại"},
+    {"hanzi": "竞争", "pinyin": "jìngzhēng", "meaning": "cạnh tranh"},
+    {"hanzi": "究竟", "pinyin": "jiūjìng", "meaning": "rốt cuộc"},
+    {"hanzi": "积累", "pinyin": "jīlěi", "meaning": "tích lũy"},
+    {"hanzi": "禁止", "pinyin": "jìnzhǐ", "meaning": "cấm"},
+    {"hanzi": "激动", "pinyin": "jīdòng", "meaning": "xúc động"},
+    {"hanzi": "景色", "pinyin": "jǐngsè", "meaning": "cảnh sắc"},
+    {"hanzi": "既然", "pinyin": "jìrán", "meaning": "đã…."},
+    {"hanzi": "教育", "pinyin": "jiàoyù", "meaning": "giáo dục"},
+    {"hanzi": "教授", "pinyin": "jiàoshòu", "meaning": "giáo sư"},
+    {"hanzi": "接着", "pinyin": "jiēzhe", "meaning": "tiếp theo"},
+    {"hanzi": "接受", "pinyin": "jiēshòu", "meaning": "tiếp nhận"},
+    {"hanzi": "拒绝", "pinyin": "jùjué", "meaning": "từ chối"},
+    {"hanzi": "技术", "pinyin": "jìshù", "meaning": "kỹ thuật"},
+    {"hanzi": "建议", "pinyin": "jiànyì", "meaning": "kiến nghị"},
+    {"hanzi": "尽管", "pinyin": "jǐnguǎn", "meaning": "tuy rằng"},
+    {"hanzi": "将来", "pinyin": "jiānglái", "meaning": "tương lai"},
+    {"hanzi": "寄", "pinyin": "jì", "meaning": "gửi"},
+    {"hanzi": "家具", "pinyin": "jiājù", "meaning": "đồ gia dụng"},
+    {"hanzi": "奖金", "pinyin": "jiǎngjīn", "meaning": "học bổng"},
+    {"hanzi": "基础", "pinyin": "jīchǔ", "meaning": "cơ sở, căn bản"},
+    {"hanzi": "坚持", "pinyin": "jiānchí", "meaning": "kiên trì"},
+    {"hanzi": "及时", "pinyin": "jíshí", "meaning": "kịp thời"},
+    {"hanzi": "即使", "pinyin": "jíshǐ", "meaning": "cho dù"},
+    {"hanzi": "加班", "pinyin": "jiābān", "meaning": "tăng ca"},
+    {"hanzi": "加油站", "pinyin": "jiāyóuzhàn", "meaning": "cây xăng"},
+    {"hanzi": "减肥", "pinyin": "jiǎnféi", "meaning": "giảm béo"},
+    {"hanzi": "减少", "pinyin": "jiǎnshǎo", "meaning": "cắt giảm"},
+    {"hanzi": "假", "pinyin": "jiǎ", "meaning": "giả"},
+    {"hanzi": "价格", "pinyin": "jiàgé", "meaning": "giá cả"},
+    {"hanzi": "京剧", "pinyin": "jīngjù", "meaning": "kinh kịch"},
+    {"hanzi": "交通", "pinyin": "jiāotōng", "meaning": "giao thông"},
+    {"hanzi": "交流", "pinyin": "jiāoliú", "meaning": "giao lưu"},
+    {"hanzi": "交", "pinyin": "jiāo", "meaning": "giao"},
+    {"hanzi": "举行", "pinyin": "jǔxíng", "meaning": "tổ chức"},
+    {"hanzi": "举办", "pinyin": "jǔbàn", "meaning": "tổ chức"},
+    {"hanzi": "举", "pinyin": "jǔ", "meaning": "giơ, nâng"},
+    {"hanzi": "开玩笑", "pinyin": "kāi wánxiào", "meaning": "đùa"},
+    {"hanzi": "苦", "pinyin": "kǔ", "meaning": "khổ, đắng"},
+    {"hanzi": "肯定", "pinyin": "kěndìng", "meaning": "khẳng định"},
+    {"hanzi": "考虑", "pinyin": "kǎolǜ", "meaning": "suy nghĩ"},
+    {"hanzi": "空气", "pinyin": "kōngqì", "meaning": "không khí"},
+    {"hanzi": "空", "pinyin": "kōng", "meaning": "trống rỗng"},
+    {"hanzi": "科学", "pinyin": "kēxué", "meaning": "khoa học"},
+    {"hanzi": "矿泉水", "pinyin": "kuàngquánshuǐ", "meaning": "nước khoáng"},
+    {"hanzi": "看法", "pinyin": "kànfǎ", "meaning": "quan điểm"},
+    {"hanzi": "烤鸭", "pinyin": "kǎoyā", "meaning": "vịt quay"},
+    {"hanzi": "棵", "pinyin": "kē", "meaning": "lượng từ cho cây"},
+    {"hanzi": "恐怕", "pinyin": "kǒngpà", "meaning": "e rằng"},
+    {"hanzi": "开心", "pinyin": "kāixīn", "meaning": "vui vẻ"},
+    {"hanzi": "客厅", "pinyin": "kètīng", "meaning": "phòng khách"},
+    {"hanzi": "困难", "pinyin": "kùnnán", "meaning": "khó khăn"},
+    {"hanzi": "困", "pinyin": "kùn", "meaning": "buồn ngủ"},
+    {"hanzi": "咳嗽", "pinyin": "késou", "meaning": "ho"},
+    {"hanzi": "可是", "pinyin": "kěshì", "meaning": "nhưng"},
+    {"hanzi": "可惜", "pinyin": "kěxī", "meaning": "đáng tiếc"},
+    {"hanzi": "可怜", "pinyin": "kělián", "meaning": "đáng thương"},
+    {"hanzi": "垃圾桶", "pinyin": "lājī tǒng", "meaning": "thùng rác"},
+    {"hanzi": "零钱", "pinyin": "língqián", "meaning": "tiền lẻ"},
+    {"hanzi": "连", "pinyin": "lián", "meaning": "liên kết, nối"},
+    {"hanzi": "辣", "pinyin": "là", "meaning": "cay"},
+    {"hanzi": "联系", "pinyin": "liánxì", "meaning": "liên hệ"},
+    {"hanzi": "老虎", "pinyin": "lǎohǔ", "meaning": "hổ"},
+    {"hanzi": "礼貌", "pinyin": "lǐmào", "meaning": "lễ phép, lịch sự"},
+    {"hanzi": "礼拜天", "pinyin": "lǐbàitiān", "meaning": "chủ nhật"},
+    {"hanzi": "留", "pinyin": "liú", "meaning": "lưu lại, ở lại"},
+    {"hanzi": "理解", "pinyin": "lǐjiě", "meaning": "lý giải, hiểu"},
+    {"hanzi": "理想", "pinyin": "lǐxiǎng", "meaning": "lý tưởng"},
+    {"hanzi": "理发", "pinyin": "lǐfà", "meaning": "cắt tóc"},
+    {"hanzi": "浪费", "pinyin": "làngfèi", "meaning": "lãng phí"},
+    {"hanzi": "浪漫", "pinyin": "làngmàn", "meaning": "lãng mạn"},
+    {"hanzi": "流行", "pinyin": "liúxíng", "meaning": "thịnh hành"},
+    {"hanzi": "破", "pinyin": "pò", "meaning": "rách, nổ"},
+    {"hanzi": "皮肤", "pinyin": "pífū", "meaning": "da"},
+    {"hanzi": "普遍", "pinyin": "pǔbiàn", "meaning": "phổ biến"},
+    {"hanzi": "普通话", "pinyin": "pǔtōnghuà", "meaning": "tiếng phổ thông"},
+    {"hanzi": "排列", "pinyin": "páiliè", "meaning": "liệt kê"},
+    {"hanzi": "批评", "pinyin": "pīpíng", "meaning": "phê bình"},
+    {"hanzi": "平时", "pinyin": "píngshí", "meaning": "bình thường"},
+    {"hanzi": "判断", "pinyin": "pànduàn", "meaning": "phán đoán"},
+    {"hanzi": "乒乓球", "pinyin": "pīngpāngqiú", "meaning": "bóng bàn"},
+    {"hanzi": "其次", "pinyin": "qícì", "meaning": "tiếp theo"},
+    {"hanzi": "轻松", "pinyin": "qīngsōng", "meaning": "thoải mái"},
+    {"hanzi": "轻", "pinyin": "qīng", "meaning": "nhẹ"},
+    {"hanzi": "缺点", "pinyin": "quēdiǎn", "meaning": "khuyết điểm"},
+    {"hanzi": "缺少", "pinyin": "quēshǎo", "meaning": "thiếu"},
+    {"hanzi": "签证", "pinyin": "qiānzhèng", "meaning": "visa"},
+    {"hanzi": "穷", "pinyin": "qióng", "meaning": "nghèo"},
+    {"hanzi": "确实", "pinyin": "quèshí", "meaning": "thật sự"},
+    {"hanzi": "气候", "pinyin": "qìhòu", "meaning": "khí hậu"},
+    {"hanzi": "桥", "pinyin": "qiáo", "meaning": "cầu"},
+    {"hanzi": "敲", "pinyin": "qiāo", "meaning": "gõ"},
+    {"hanzi": "情况", "pinyin": "qíngkuàng", "meaning": "tình hình"},
+    {"hanzi": "巧克力", "pinyin": "qiǎokèlì", "meaning": "sô cô la"},
+    {"hanzi": "取", "pinyin": "qǔ", "meaning": "lấy"},
+    {"hanzi": "却", "pinyin": "què", "meaning": "lại"},
+    {"hanzi": "千万", "pinyin": "qiānwàn", "meaning": "nhất thiết"},
+    {"hanzi": "区别", "pinyin": "qūbié", "meaning": "khác biệt"},
+    {"hanzi": "其中", "pinyin": "qízhōng", "meaning": "trong đó"},
+    {"hanzi": "全部", "pinyin": "quánbù", "meaning": "toàn bộ"},
+    {"hanzi": "亲戚", "pinyin": "qīnqi", "meaning": "họ hàng"},
+    {"hanzi": "然而", "pinyin": "rán’ér", "meaning": "vậy mà"},
+    {"hanzi": "热闹", "pinyin": "rènào", "meaning": "náo nhiệt"},
+    {"hanzi": "日记", "pinyin": "rìjì", "meaning": "nhật kí"},
+    {"hanzi": "扔", "pinyin": "rēng", "meaning": "ném"},
+    {"hanzi": "入口", "pinyin": "rùkǒu", "meaning": "cửa vào"},
+    {"hanzi": "任务", "pinyin": "rènwù", "meaning": "nhiệm vụ"},
+    {"hanzi": "任何", "pinyin": "rènhé", "meaning": "bất kì"},
+    {"hanzi": "仍然", "pinyin": "réngrán", "meaning": "vẫn"},
+    {"hanzi": "散步", "pinyin": "sànbù", "meaning": "tản bộ"},
+    {"hanzi": "首都", "pinyin": "shǒudū", "meaning": "thủ đô"},
+    {"hanzi": "首先", "pinyin": "shǒuxiān", "meaning": "đầu tiên"},
+    {"hanzi": "顺序", "pinyin": "shùnxù", "meaning": "thứ tự"},
+    {"hanzi": "顺利", "pinyin": "shùnlì", "meaning": "thuận lợi"},
+    {"hanzi": "顺便", "pinyin": "shùnbiàn", "meaning": "nhân tiện"},
+    {"hanzi": "随着", "pinyin": "suízhe", "meaning": "cùng với"},
+    {"hanzi": "随便", "pinyin": "suíbiàn", "meaning": "tùy tiện, tự nhiên"},
+    {"hanzi": "小说", "pinyin": "xiǎoshuō", "meaning": "tiểu thuyết"},
+    {"hanzi": "小吃", "pinyin": "xiǎochī", "meaning": "đồ ăn vặt"},
+    {"hanzi": "小伙子", "pinyin": "xiǎohuǒzi", "meaning": "anh chàng"},
+    {"hanzi": "学期", "pinyin": "xuéqī", "meaning": "học kì"},
+    {"hanzi": "响", "pinyin": "xiǎng", "meaning": "kêu"},
+    {"hanzi": "咸", "pinyin": "xián", "meaning": "mặn"},
+    {"hanzi": "吸引", "pinyin": "xīyǐn", "meaning": "thu hút"},
+    {"hanzi": "兴奋", "pinyin": "xīngfèn", "meaning": "hưng phấn, hứng khởi"},
+    {"hanzi": "修理", "pinyin": "xiūlǐ", "meaning": "sửa chữa"},
+    {"hanzi": "信息", "pinyin": "xìnxī", "meaning": "thông tin"},
+    {"hanzi": "信心", "pinyin": "xìnxīn", "meaning": "niềm tin"},
+    {"hanzi": "信封", "pinyin": "xìnfēng", "meaning": "bức thư"},
+    {"hanzi": "压力", "pinyin": "yālì", "meaning": "áp lực"},
+    {"hanzi": "预习", "pinyin": "yùxí", "meaning": "chuẩn bị trước"},
+    {"hanzi": "页", "pinyin": "yè", "meaning": "trang mạng"},
+    {"hanzi": "阳光", "pinyin": "yángguāng", "meaning": "ánh nắng"},
+    {"hanzi": "阅读", "pinyin": "yuèdú", "meaning": "đọc hiểu"},
+    {"hanzi": "钥匙", "pinyin": "yàoshi", "meaning": "chìa khóa"},
+    {"hanzi": "邮局", "pinyin": "yóujú", "meaning": "bưu điện"},
+    {"hanzi": "邀请", "pinyin": "yāoqǐng", "meaning": "mời"},
+    {"hanzi": "赢", "pinyin": "yíng", "meaning": "thắng"},
+    {"hanzi": "语言", "pinyin": "yǔyán", "meaning": "ngôn ngữ"},
+    {"hanzi": "语法", "pinyin": "yǔfǎ", "meaning": "ngữ pháp"},
+    {"hanzi": "要是", "pinyin": "yàoshi", "meaning": "nếu"},
+    {"hanzi": "艺术", "pinyin": "yìshù", "meaning": "nghệ thuật"},
+    {"hanzi": "羽毛球", "pinyin": "yǔmáoqiú", "meaning": "cầu lông"},
+    {"hanzi": "约会", "pinyin": "yuēhuì", "meaning": "hẹn, cuộc hẹn"},
+    {"hanzi": "研究", "pinyin": "yánjiū", "meaning": "nghiên cứu"},
+    {"hanzi": "眼镜", "pinyin": "yǎnjìng", "meaning": "kính mắt"},
+    {"hanzi": "盐", "pinyin": "yán", "meaning": "muối"},
+    {"hanzi": "由于", "pinyin": "yóuyú", "meaning": "do"},
+    {"hanzi": "由", "pinyin": "yóu", "meaning": "do"},
+    {"hanzi": "牙膏", "pinyin": "yágāo", "meaning": "kem đánh răng"},
+    {"hanzi": "演员", "pinyin": "yǎnyuán", "meaning": "diễn viên"},
+    {"hanzi": "演出", "pinyin": "yǎnchū", "meaning": "buổi diễn"},
+    {"hanzi": "永远", "pinyin": "yǒngyuǎn", "meaning": "mãi mãi"},
+    {"hanzi": "样子", "pinyin": "yàngzi", "meaning": "dáng ngoài, bề ngoài"},
+    {"hanzi": "有趣", "pinyin": "yǒuqù", "meaning": "hứng thú"},
+    {"hanzi": "意见", "pinyin": "yìjiàn", "meaning": "ý kiến"},
+    {"hanzi": "愉快", "pinyin": "yúkuài", "meaning": "vui vẻ"},
+    {"hanzi": "引起", "pinyin": "yǐnqǐ", "meaning": "dẫn đến, gây ra"},
+    {"hanzi": "应聘", "pinyin": "yìngpìn", "meaning": "ứng tuyển"},
+    {"hanzi": "只要", "pinyin": "zhǐyào", "meaning": "chỉ cần"},
+    {"hanzi": "只好", "pinyin": "zhǐhǎo", "meaning": "đành"},
+    {"hanzi": "占线", "pinyin": "zhànxiàn", "meaning": "máy bận"},
+    {"hanzi": "准确", "pinyin": "zhǔnquè", "meaning": "chính xác"},
+    {"hanzi": "准时", "pinyin": "zhǔnshí", "meaning": "đúng giờ"},
+    {"hanzi": "值得", "pinyin": "zhídé", "meaning": "đáng"},
+    {"hanzi": "作者", "pinyin": "zuòzhě", "meaning": "tác gia"},
+    {"hanzi": "作用", "pinyin": "zuòyòng", "meaning": "tác dụng"},
+    {"hanzi": "作家", "pinyin": "zuòjiā", "meaning": "tác gia"},
+    {"hanzi": "仔细", "pinyin": "zǐxì", "meaning": "cẩn thận"},
+    {"hanzi": "之", "pinyin": "zhī", "meaning": "chi"},
+    {"hanzi": "主意", "pinyin": "zhǔyì", "meaning": "chủ ý"},
+    {"hanzi": "专门", "pinyin": "zhuānmén", "meaning": "chuyên môn"},
+    {"hanzi": "专业", "pinyin": "zhuānyè", "meaning": "chuyên ngành"}
+]
 
-# --- DỮ LIỆU CÁC BỘ ĐỀ ---
+# Random sample of 6 cards stored in session_state or recalculated
+if "fc_sample" not in st.session_state:
+    st.session_state["fc_sample"] = random.sample(VOCAB_600, 6)
+
+with st.expander("🎴 **FLASHCARD TỪ VỰNG HSK4 (Rê chuột để lật thẻ)**", expanded=True):
+    col_fc_btn, _ = st.columns([1, 3])
+    with col_fc_btn:
+        if st.button("🔀 Đổi thẻ ngẫu nhiên"):
+            st.session_state["fc_sample"] = random.sample(VOCAB_600, 6)
+            st.rerun()
+            
+    cols = st.columns(3)
+    for idx, card in enumerate(st.session_state["fc_sample"]):
+        with cols[idx % 3]:
+            card_html = f"""
+            <div class="flashcard-box">
+                <div class="flashcard-inner">
+                    <div class="flashcard-front">
+                        <div class="fc-hanzi">{card['hanzi']}</div>
+                        <div class="fc-pinyin">{card['pinyin']}</div>
+                        <div class="fc-hint">👆 Rê chuột vào để lật nghĩa</div>
+                    </div>
+                    <div class="flashcard-back">
+                        <div class="fc-meaning">{card['meaning']}</div>
+                    </div>
+                </div>
+            </div>
+            """
+            st.markdown(card_html, unsafe_allow_html=True)
+
+st.markdown("---")
+
+# --- BẢNG NHẬP HỌ TÊN HỌC VIÊN NẰM TRỰC TIẾP TRÊN TRANG MAIN ---
+st.markdown("### 📝 Thông tin học viên")
+student_name = st.text_input("Họ và tên học viên (bắt buộc trước khi làm bài):", key="global_student_name", placeholder="Ví dụ: Nguyễn Văn A").strip()
+
+if not student_name:
+    st.info("💡 Vui lòng điền Họ tên ở ô trên trước khi nộp bài để cô ghi nhận điểm số nhé!")
+else:
+    st.success(f"Chào mừng **{student_name}**! Hãy chọn bộ đề bên dưới để bắt đầu làm bài.")
+
 TEST_DATA = [
     {
         "id": "01-cơ bản",
@@ -314,7 +674,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "09-cơ bản",
+        "id": "09-CƠ BẢN - Bộ đề 10",
         "source": "ĐỌC 1 (CƠ BẢN)",
         "name": "Bộ đề 10",
         "questions": [
@@ -331,7 +691,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "10-cơ bản",
+        "id": "10-CƠ BẢN - Bộ đề 11",
         "source": "ĐỌC 1 (CƠ BẢN)",
         "name": "Bộ đề 11",
         "questions": [
@@ -348,7 +708,7 @@ TEST_DATA = [
         ]
     },
     {
-        "id": "11-cơ bản",
+        "id": "11-CƠ BẢN - Bộ đề 12",
         "source": "ĐỌC 1 (CƠ BẢN)",
         "name": "Bộ đề 12",
         "questions": [
@@ -628,7 +988,7 @@ tabs = st.tabs(tab_names)
 for index, tab in enumerate(tabs):
     test_info = TEST_DATA[index]
     with tab:
-        st.subheader(f"📌 {test_info['id']} 🌸✨")
+        st.subheader(f"📌 {test_info['id']} ({test_info['source']})")
         st.markdown("Chọn đáp án đúng nhất cho từng câu hỏi dưới đây:")
         
         # Form for answering questions
@@ -674,11 +1034,11 @@ for index, tab in enumerate(tabs):
                 st.markdown(f"### 🎉 Chúc mừng "**{student_name}**" hoàn thành **{test_info['id']}**. Điểm số của bạn là **{score}/{total}**")
                 
                 if score >= 8:
-                    st.markdown('<div class="result-banner-8">🎉 🌸 <b>Ai mà giỏi quá ta, tiếp tục phát huy nha! ✨ 🏆 💖</b></div>', unsafe_allow_html=True)
+                    st.markdown('<div class="result-banner-8">🌟 <b>Ai mà giỏi quá ta, tiếp tục phát huy nha.</b></div>', unsafe_allow_html=True)
                 elif score >= 5:
-                    st.markdown('<div class="result-banner-5">🌈 🍓 <b>Ok cũng được đó, tiếp tục cố gắng nha! 💪 ✨ 🍀</b></div>', unsafe_allow_html=True)
+                    st.markdown('<div class="result-banner-5">👍 <b>Ok cũng được đó, tiếp tục cố gắng nha!</b></div>', unsafe_allow_html=True)
                 else:
-                    st.markdown('<div class="result-banner-0">🥺 🐥 <b>Hơi tiếc một chút, bạn nhớ kỹ lại từ vựng nhé! 💖 📘 🌟</b></div>', unsafe_allow_html=True)
+                    st.markdown('<div class="result-banner-0">💪 <b>Hơi tiếc một chút, bạn nhớ kỹ lại từ vựng nhé!</b></div>', unsafe_allow_html=True)
                 
                 # Send result to Google Sheet
                 sent = post_to_gsheet(student_name, test_info["id"], score_str)
@@ -696,3 +1056,5 @@ for index, tab in enumerate(tabs):
                         st.markdown(f"**Câu {item['num']}:** ❌ Sai.")
                         st.markdown(f"- Bạn chọn: `{item['user_ans'] if item['user_ans'] else 'Chưa chọn'}`")
                         st.markdown(f"- Đáp án đúng: **{item['correct_ans']}**")
+# --- FOOTER ---
+st.markdown('<div class="teacher-footer">黄宝玉老师</div>', unsafe_allow_html=True)
