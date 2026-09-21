@@ -164,7 +164,7 @@ GSHEET_URL = "https://script.google.com/macros/s/AKfycbzsGpC84ZYruRCamTzv3pnY3eH
 def post_to_gsheet(student_name, test_name, score_str):
     try:
         payload = {
-            "sheet": "Từ vựng HSK",
+            "sheet": "Từ vựng",
             "name": student_name,
             "test": test_name,
             "score": score_str,
