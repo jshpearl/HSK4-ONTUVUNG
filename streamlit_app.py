@@ -1046,7 +1046,7 @@ for index, tab in enumerate(tabs):
                 score_str = f"{score}/{total}"
                 
                 # Dynamic Feedback message based on score
-                st.markdown(f"### 🎉 Chúc mừng "**{student_name}**" hoàn thành **{test_info['id']}**. Điểm số của bạn là **{score}/{total}**")
+                st.markdown(f"### 🎉 Chúc mừng **{student_name}** hoàn thành **{test_info['id']}**. Điểm số của bạn là **{score}/{total}**")
                 
                 if score >= 8:
                     st.markdown('<div class="result-banner-8">🌟 <b>Ai mà giỏi quá ta, tiếp tục phát huy nha.</b></div>', unsafe_allow_html=True)
