@@ -163,16 +163,63 @@ GSHEET_URL = "https://script.google.com/macros/s/AKfycbzsGpC84ZYruRCamTzv3pnY3eH
 
 def post_to_gsheet(student_name, test_name, score_str):
     try:
+        # Fallback to session_state if student_name is empty
+        if not student_name or not student_name.strip():
+            student_name = st.session_state.get("global_student_name", "").strip() or "Học viên"
+        
+        timestamp_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Comprehensive JSON payload for all Google Apps Script key name conventions
         payload = {
             "sheet": "Từ vựng",
+            "sheetName": "Từ vựng",
+            "sheet_name": "Từ vựng",
+            "tab": "Từ vựng",
+            "tabName": "Từ vựng",
+            "tab_name": "Từ vựng",
+            "action": "append",
+            
             "name": student_name,
+            "student_name": student_name,
+            "studentName": student_name,
+            "student": student_name,
+            "hoTen": student_name,
+            "hoten": student_name,
+            "fullname": student_name,
+            "full_name": student_name,
+            
+            "test": test_name,
+            "test_name": test_name,
+            "testName": test_name,
+            "boDe": test_name,
+            "bode": test_name,
+            
+            "score": score_str,
+            "score_str": score_str,
+            "diem": score_str,
+            "points": score_str,
+            
+            "timestamp": timestamp_str,
+            "time": timestamp_str,
+            "date": timestamp_str
+        }
+        
+        # URL parameters in case GAS script reads e.parameter
+        params = {
+            "sheet": "Từ vựng",
+            "sheetName": "Từ vựng",
+            "tab": "Từ vựng",
+            "name": student_name,
+            "student_name": student_name,
+            "hoTen": student_name,
             "test": test_name,
             "score": score_str,
-            "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            "timestamp": timestamp_str
         }
-        resp = requests.post(GSHEET_URL, json=payload, timeout=5)
+        
+        resp = requests.post(GSHEET_URL, params=params, json=payload, timeout=5)
         return True
-    except Exception:
+    except Exception as e:
         return False
 
 # --- HEADER (ĐƠN GIẢN, KHÔNG MÀU MÈ CẦU KỲ) ---
@@ -1023,8 +1070,9 @@ for index, tab in enumerate(tabs):
             submit_btn = st.form_submit_button("🚀 Nộp bài & Xem điểm", type="primary")
         
         if submit_btn:
-            if not student_name:
-                st.error("❌ Bạn chưa nhập **Họ và tên học viên** ở sidebar (thanh bên trái). Vui lòng nhập họ tên để ghi nhận điểm!")
+            cur_student_name = st.session_state.get("global_student_name", "").strip() or student_name.strip()
+            if not cur_student_name:
+                st.error("❌ Bạn chưa nhập **Họ và tên học viên** ở ô phía trên. Vui lòng nhập họ tên để ghi nhận điểm!")
             else:
                 score = 0
                 total = len(test_info["questions"])
@@ -1046,7 +1094,7 @@ for index, tab in enumerate(tabs):
                 score_str = f"{score}/{total}"
                 
                 # Dynamic Feedback message based on score
-                st.markdown(f"### 🎉 Chúc mừng **{student_name}** hoàn thành **{test_info['id']}**. Điểm số của bạn là **{score}/{total}**")
+                st.markdown(f"### 🎉 Chúc mừng **{cur_student_name}** hoàn thành **{test_info['id']}**. Điểm số của bạn là **{score}/{total}**")
                 
                 if score >= 8:
                     st.markdown('<div class="result-banner-8">🌟 <b>Ai mà giỏi quá ta, tiếp tục phát huy nha.</b></div>', unsafe_allow_html=True)
@@ -1056,7 +1104,7 @@ for index, tab in enumerate(tabs):
                     st.markdown('<div class="result-banner-0">💪 <b>Hơi tiếc một chút, bạn nhớ kỹ lại từ vựng nhé!</b></div>', unsafe_allow_html=True)
                 
                 # Send result to Google Sheet
-                sent = post_to_gsheet(student_name, test_info["id"], score_str)
+                sent = post_to_gsheet(cur_student_name, test_info["id"], score_str)
                 if sent:
                     st.success("✅ Đã tự động gửi kết quả điểm về Google Sheet cho cô Bảo Ngọc!")
                 else:
