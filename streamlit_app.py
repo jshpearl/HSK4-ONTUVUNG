@@ -159,7 +159,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- GOOGLE SHEETS API URL ---
-GSHEET_URL = "https://script.google.com/macros/s/AKfycby_GpXX2X6lAiBGEk4XUK7u0IvDXnU-Z62osZ2QSQQONiDR8staYSpf0cFks17IZ0U/exec"
+GSHEET_URL = "https://script.google.com/macros/s/AKfycbzW3-4ykiDEnMcH6gjeSUFLYxh457a2QBgOffdjJUKVTBe3iu7dzXbIvyvchEtWNDab/exec"
 
 def post_to_gsheet(student_name, test_name, score_str):
     try:
