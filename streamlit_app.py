@@ -159,7 +159,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- GOOGLE SHEETS API URL ---
-GSHEET_URL = "https://script.google.com/macros/s/AKfycbzW3-4ykiDEnMcH6gjeSUFLYxh457a2QBgOffdjJUKVTBe3iu7dzXbIvyvchEtWNDab/exec"
+GSHEET_URL = "https://script.google.com/macros/s/AKfycbzsGpC84ZYruRCamTzv3pnY3eHcibMa9sVLT73S5zpX_OfAKRYwmMDgZElfUeWbA7Km/exec"
 
 def post_to_gsheet(student_name, test_name, score_str):
     try:
@@ -193,6 +193,19 @@ def post_to_gsheet(student_name, test_name, score_str):
             "testName": test_name,
             "boDe": test_name,
             "bode": test_name,
+            "phanThi": test_name,
+            "phan_thi": test_name,
+            "PhanThi": test_name,
+            "maDe": test_name,
+            "ma_de": test_name,
+            "Made": test_name,
+            "made": test_name,
+            "baiThi": test_name,
+            "baithi": test_name,
+            "code": test_name,
+            "exam": test_name,
+            "section": test_name,
+            "topic": test_name,
             
             "score": score_str,
             "score_str": score_str,
@@ -213,6 +226,11 @@ def post_to_gsheet(student_name, test_name, score_str):
             "student_name": student_name,
             "hoTen": student_name,
             "test": test_name,
+            "phanThi": test_name,
+            "phan_thi": test_name,
+            "maDe": test_name,
+            "ma_de": test_name,
+            "boDe": test_name,
             "score": score_str,
             "timestamp": timestamp_str
         }
